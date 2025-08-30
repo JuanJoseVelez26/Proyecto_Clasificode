@@ -1,0 +1,18 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+      {
+        "name": "Iniciar API Flask en depuración",
+        "type": "debugpy",
+        "request": "launch",
+        "program": "${workspaceFolder}/app.py",
+        "console": "integratedTerminal",
+        "justMyCode": true,
+        "env": {
+          "FLASK_APP": "main.py",
+          "FLASK_ENV": "development",
+          "FLASK_DEBUG": "1"
+        }
+      }
+    ]
+  }

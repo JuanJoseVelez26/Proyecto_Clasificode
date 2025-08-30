@@ -1,0 +1,241 @@
+{% extends "layout.html" %}
+
+{% block title %}Dashboard - ClasifiCode{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-0">Dashboard</h1>
+                    <p class="text-muted mb-0">Bienvenido, {{ user.full_name if user else session.get('user_name', 'Usuario') }}</p>
+                </div>
+                <div class="btn-group" role="group">
+                    <a href="{{ url_for('classify') }}" class="btn btn-primary">
+                        <i class="fas fa-magic"></i> Nueva Clasificación
+                    </a>
+                    <a href="{{ url_for('new_case') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-plus"></i> Nuevo Caso
+                    </a>
+                </div>
+            </div>
+
+            <!-- Estadísticas principales -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="icon text-primary">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="number">{{ stats.total_cases or 0 }}</div>
+                        <div class="label">Total Casos</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="icon text-warning">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="number">{{ stats.pending_cases or 0 }}</div>
+                        <div class="label">Pendientes</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="icon text-success">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="number">{{ stats.approved_cases or 0 }}</div>
+                        <div class="label">Aprobados</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="icon text-info">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="number">{{ stats.accuracy_rate or 0 }}%</div>
+                        <div class="label">Precisión</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Gráfico de casos -->
+                <div class="col-lg-8">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-bar"></i> Actividad de Casos
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="casesChart" height="100"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Actividad reciente -->
+                <div class="col-lg-4">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-history"></i> Actividad Reciente
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if recent_cases %}
+                            <div class="timeline">
+                                {% for case in recent_cases[:5] %}
+                                <div class="timeline-item">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">{{ case.title }}</h6>
+                                        <p class="text-muted mb-1">{{ case.product_name }}</p>
+                                        <small class="text-muted">
+                                            {{ case.created_at.strftime('%d/%m/%Y %H:%M') if case.created_at else 'N/A' }}
+                                        </small>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <p class="text-muted text-center">No hay actividad reciente</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Casos recientes -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-list"></i> Casos Recientes
+                        </h5>
+                        <a href="{{ url_for('cases_list') }}" class="btn btn-outline-primary btn-sm">
+                            Ver todos
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if recent_cases %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Número</th>
+                                    <th>Producto</th>
+                                    <th>Estado</th>
+                                    <th>Fecha</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for case in recent_cases[:10] %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ case.case_number or case.id }}</strong>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>{{ case.product_name }}</strong>
+                                            {% if case.brand %}
+                                            <br><small class="text-muted">{{ case.brand }}</small>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% set status_colors = {
+                                            'DRAFT': 'secondary',
+                                            'PENDING': 'warning',
+                                            'IN_REVIEW': 'info',
+                                            'APPROVED': 'success',
+                                            'REJECTED': 'danger',
+                                            'CLOSED': 'dark'
+                                        } %}
+                                        <span class="badge bg-{{ status_colors.get(case.status, 'secondary') }}">
+                                            {{ case.status.replace('_', ' ').title() if case.status else 'N/A' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div>{{ case.created_at.strftime('%d/%m/%Y') if case.created_at else 'N/A' }}</div>
+                                        <small class="text-muted">{{ case.created_at.strftime('%H:%M') if case.created_at else '' }}</small>
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('case_detail', case_id=case.id) }}" 
+                                           class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No hay casos</h5>
+                        <p class="text-muted">Crea tu primer caso de clasificación</p>
+                        <a href="{{ url_for('new_case') }}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Crear Caso
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Initialize dashboard charts
+document.addEventListener('DOMContentLoaded', function() {
+    // Cases chart
+    const ctx = document.getElementById('casesChart');
+    if (ctx) {
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun'],
+                datasets: [{
+                    label: 'Casos Procesados',
+                    data: [12, 19, 3, 5, 2, 3],
+                    borderColor: 'rgb(75, 192, 192)',
+                    backgroundColor: 'rgba(75, 192, 192, 0.1)',
+                    tension: 0.1,
+                    fill: true
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: {
+                            color: 'rgba(0, 0, 0, 0.1)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            display: false
+                        }
+                    }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

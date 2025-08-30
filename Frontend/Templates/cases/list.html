@@ -1,0 +1,346 @@
+{% extends "layout.html" %}
+
+{% block title %}Casos - ClasifiCode{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">Casos de Clasificación</h1>
+                <a href="{{ url_for('new_case') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Nuevo Caso
+                </a>
+            </div>
+
+            <!-- Filtros y búsqueda -->
+            <div class="card mb-4">
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="status" class="form-label">Estado</label>
+                            <select class="form-select" id="status" name="status">
+                                <option value="">Todos</option>
+                                <option value="DRAFT" {% if request.args.get('status') == 'DRAFT' %}selected{% endif %}>Borrador</option>
+                                <option value="PENDING" {% if request.args.get('status') == 'PENDING' %}selected{% endif %}>Pendiente</option>
+                                <option value="IN_REVIEW" {% if request.args.get('status') == 'IN_REVIEW' %}selected{% endif %}>En Revisión</option>
+                                <option value="APPROVED" {% if request.args.get('status') == 'APPROVED' %}selected{% endif %}>Aprobado</option>
+                                <option value="REJECTED" {% if request.args.get('status') == 'REJECTED' %}selected{% endif %}>Rechazado</option>
+                                <option value="CLOSED" {% if request.args.get('status') == 'CLOSED' %}selected{% endif %}>Cerrado</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="priority" class="form-label">Prioridad</label>
+                            <select class="form-select" id="priority" name="priority">
+                                <option value="">Todas</option>
+                                <option value="LOW" {% if request.args.get('priority') == 'LOW' %}selected{% endif %}>Baja</option>
+                                <option value="MEDIUM" {% if request.args.get('priority') == 'MEDIUM' %}selected{% endif %}>Media</option>
+                                <option value="HIGH" {% if request.args.get('priority') == 'HIGH' %}selected{% endif %}>Alta</option>
+                                <option value="URGENT" {% if request.args.get('priority') == 'URGENT' %}selected{% endif %}>Urgente</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="assigned_to" class="form-label">Asignado a</label>
+                            <select class="form-select" id="assigned_to" name="assigned_to">
+                                <option value="">Todos</option>
+                                {% for user in users %}
+                                <option value="{{ user.id }}" {% if request.args.get('assigned_to') == user.id|string %}selected{% endif %}>
+                                    {{ user.full_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="search" class="form-label">Buscar</label>
+                            <div class="input-group">
+                                <input type="text" class="form-control" id="search" name="search" 
+                                       placeholder="Código HS, producto..." 
+                                       value="{{ request.args.get('search', '') }}">
+                                <button class="btn btn-outline-secondary" type="submit">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Estadísticas rápidas -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="icon text-primary">
+                            <i class="fas fa-file-alt"></i>
+                        </div>
+                        <div class="number">{{ stats.total }}</div>
+                        <div class="label">Total Casos</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="icon text-warning">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="number">{{ stats.pending }}</div>
+                        <div class="label">Pendientes</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="icon text-success">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="number">{{ stats.approved }}</div>
+                        <div class="label">Aprobados</div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="stats-card">
+                        <div class="icon text-danger">
+                            <i class="fas fa-times-circle"></i>
+                        </div>
+                        <div class="number">{{ stats.rejected }}</div>
+                        <div class="label">Rechazados</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de casos -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Casos ({{ cases.total }})</h5>
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="exportCases('csv')">
+                                <i class="fas fa-download"></i> CSV
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="exportCases('excel')">
+                                <i class="fas fa-file-excel"></i> Excel
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% if cases.items %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Número</th>
+                                    <th>Producto</th>
+                                    <th>Código HS</th>
+                                    <th>Estado</th>
+                                    <th>Prioridad</th>
+                                    <th>Asignado</th>
+                                    <th>Fecha</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for case in cases.items %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ case.case_number }}</strong>
+                                    </td>
+                                    <td>
+                                        <div>
+                                            <strong>{{ case.product_name }}</strong>
+                                            {% if case.brand %}
+                                            <br><small class="text-muted">{{ case.brand }}</small>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if case.final_hs_code %}
+                                        <span class="badge bg-success">{{ case.final_hs_code }}</span>
+                                        {% elif case.proposed_hs_code %}
+                                        <span class="badge bg-warning">{{ case.proposed_hs_code }}</span>
+                                        {% else %}
+                                        <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% set status_colors = {
+                                            'DRAFT': 'secondary',
+                                            'PENDING': 'warning',
+                                            'IN_REVIEW': 'info',
+                                            'APPROVED': 'success',
+                                            'REJECTED': 'danger',
+                                            'CLOSED': 'dark'
+                                        } %}
+                                        <span class="badge bg-{{ status_colors.get(case.status, 'secondary') }}">
+                                            {{ case.status.replace('_', ' ').title() }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% set priority_colors = {
+                                            'LOW': 'success',
+                                            'MEDIUM': 'warning',
+                                            'HIGH': 'danger',
+                                            'URGENT': 'danger'
+                                        } %}
+                                        <span class="badge bg-{{ priority_colors.get(case.priority, 'secondary') }}">
+                                            {{ case.priority.title() }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {% if case.assigned_to %}
+                                        <div class="d-flex align-items-center">
+                                            <div class="avatar-sm me-2">
+                                                <i class="fas fa-user-circle"></i>
+                                            </div>
+                                            <div>
+                                                <div>{{ case.assigned_to.full_name }}</div>
+                                                <small class="text-muted">{{ case.assigned_to.role.title() }}</small>
+                                            </div>
+                                        </div>
+                                        {% else %}
+                                        <span class="text-muted">Sin asignar</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div>{{ case.created_at.strftime('%d/%m/%Y') }}</div>
+                                        <small class="text-muted">{{ case.created_at.strftime('%H:%M') }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <a href="{{ url_for('case_detail', case_id=case.id) }}" 
+                                               class="btn btn-sm btn-outline-primary" 
+                                               title="Ver detalles">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('edit_case', case_id=case.id) }}" 
+                                               class="btn btn-sm btn-outline-secondary" 
+                                               title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            {% if case.status == 'DRAFT' %}
+                                            <button type="button" 
+                                                    class="btn btn-sm btn-outline-success"
+                                                    onclick="submitCase({{ case.id }})"
+                                                    title="Enviar para revisión">
+                                                <i class="fas fa-paper-plane"></i>
+                                            </button>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No hay casos</h5>
+                        <p class="text-muted">Crea tu primer caso de clasificación</p>
+                        <a href="{{ url_for('new_case') }}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Crear Caso
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Paginación -->
+            {% if cases.pages > 1 %}
+            <nav aria-label="Navegación de casos" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    {% if cases.has_prev %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('cases_list', page=cases.prev_num, **request.args) }}">
+                            <i class="fas fa-chevron-left"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+
+                    {% for page_num in cases.iter_pages() %}
+                        {% if page_num %}
+                            {% if page_num != cases.page %}
+                            <li class="page-item">
+                                <a class="page-link" href="{{ url_for('cases_list', page=page_num, **request.args) }}">
+                                    {{ page_num }}
+                                </a>
+                            </li>
+                            {% else %}
+                            <li class="page-item active">
+                                <span class="page-link">{{ page_num }}</span>
+                            </li>
+                            {% endif %}
+                        {% else %}
+                        <li class="page-item disabled">
+                            <span class="page-link">...</span>
+                        </li>
+                        {% endif %}
+                    {% endfor %}
+
+                    {% if cases.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="{{ url_for('cases_list', page=cases.next_num, **request.args) }}">
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmación -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar acción</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmAction">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function submitCase(caseId) {
+    const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    document.getElementById('confirmMessage').textContent = '¿Estás seguro de que quieres enviar este caso para revisión?';
+    document.getElementById('confirmAction').onclick = () => {
+        fetch(`/api/cases/${caseId}/submit`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert('Error al enviar el caso: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al enviar el caso');
+        });
+        modal.hide();
+    };
+    modal.show();
+}
+
+function exportCases(format) {
+    const params = new URLSearchParams(window.location.search);
+    params.append('format', format);
+    window.location.href = `/api/cases/export?${params.toString()}`;
+}
+</script>
+{% endblock %}

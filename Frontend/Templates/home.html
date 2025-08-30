@@ -1,0 +1,168 @@
+{% extends "layout.html" %}
+
+{% block title %}ClasifiCode - Inicio{% endblock %}
+
+{% block content %}
+<div class="row align-items-center min-vh-75">
+    <div class="col-lg-6">
+        <h1 class="display-4 fw-bold text-primary mb-4">
+            ClasifiCode
+        </h1>
+        <h2 class="h3 mb-4">
+            Sistema Inteligente de Clasificación Arancelaria
+        </h2>
+        <p class="lead mb-4">
+            Clasifica productos automáticamente usando reglas RGI y análisis semántico con IA/ML. 
+            Obtén códigos HS precisos y confiables para tu comercio internacional.
+        </p>
+        <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+            <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg px-4 me-md-2">
+                <i class="bi bi-person-plus"></i> Comenzar Gratis
+            </a>
+            <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg px-4">
+                <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
+            </a>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="text-center">
+            <i class="bi bi-box-seam display-1 text-primary"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Features Section -->
+<section class="py-5">
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-robot display-4 text-primary mb-3"></i>
+                    <h5 class="card-title">IA/ML Avanzado</h5>
+                    <p class="card-text">
+                        Utiliza algoritmos de machine learning y procesamiento de lenguaje natural 
+                        para análisis semántico preciso.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-shield-check display-4 text-primary mb-3"></i>
+                    <h5 class="card-title">Reglas RGI</h5>
+                    <p class="card-text">
+                        Implementación completa de las 6 Reglas Generales de Interpretación 
+                        para clasificación arancelaria correcta.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="bi bi-speedometer2 display-4 text-primary mb-3"></i>
+                    <h5 class="card-title">Rápido y Eficiente</h5>
+                    <p class="card-text">
+                        Clasificación automática en segundos con resultados confiables 
+                        y explicaciones detalladas.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How it Works Section -->
+<section class="py-5 bg-light">
+    <div class="row">
+        <div class="col-12 text-center mb-5">
+            <h2 class="fw-bold">¿Cómo Funciona?</h2>
+            <p class="lead">Proceso simple en 3 pasos</p>
+        </div>
+    </div>
+    <div class="row g-4">
+        <div class="col-md-4 text-center">
+            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                <span class="h3 mb-0">1</span>
+            </div>
+            <h5>Describe tu Producto</h5>
+            <p>Ingresa el nombre y descripción detallada del producto que necesitas clasificar.</p>
+        </div>
+        <div class="col-md-4 text-center">
+            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                <span class="h3 mb-0">2</span>
+            </div>
+            <h5>Análisis Automático</h5>
+            <p>Nuestro sistema analiza el producto usando reglas RGI y similitud semántica.</p>
+        </div>
+        <div class="col-md-4 text-center">
+            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                <span class="h3 mb-0">3</span>
+            </div>
+            <h5>Obtén tu Código HS</h5>
+            <p>Recibe el código HS recomendado con nivel de confianza y explicación detallada.</p>
+        </div>
+    </div>
+</section>
+
+<!-- Benefits Section -->
+<section class="py-5">
+    <div class="row">
+        <div class="col-12 text-center mb-5">
+            <h2 class="fw-bold">Beneficios</h2>
+        </div>
+    </div>
+    <div class="row g-4">
+        <div class="col-lg-6">
+            <div class="d-flex">
+                <i class="bi bi-check-circle-fill text-success fs-4 me-3"></i>
+                <div>
+                    <h6>Precisión Mejorada</h6>
+                    <p class="text-muted">Reduce errores de clasificación con análisis semántico avanzado.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="d-flex">
+                <i class="bi bi-clock text-success fs-4 me-3"></i>
+                <div>
+                    <h6>Ahorro de Tiempo</h6>
+                    <p class="text-muted">Clasificación automática en segundos vs horas de investigación manual.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="d-flex">
+                <i class="bi bi-graph-up text-success fs-4 me-3"></i>
+                <div>
+                    <h6>Eficiencia Operativa</h6>
+                    <p class="text-muted">Optimiza procesos de comercio exterior y reduce costos operativos.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="d-flex">
+                <i class="bi bi-shield-check text-success fs-4 me-3"></i>
+                <div>
+                    <h6>Cumplimiento Normativo</h6>
+                    <p class="text-muted">Asegura cumplimiento con regulaciones arancelarias internacionales.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5 bg-primary text-white">
+    <div class="row text-center">
+        <div class="col-12">
+            <h2 class="fw-bold mb-3">¿Listo para Optimizar tu Clasificación Arancelaria?</h2>
+            <p class="lead mb-4">Únete a cientos de empresas que ya confían en ClasifiCode</p>
+            <a href="{{ url_for('register') }}" class="btn btn-light btn-lg">
+                <i class="bi bi-person-plus"></i> Crear Cuenta Gratuita
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

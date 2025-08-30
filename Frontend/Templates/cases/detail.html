@@ -1,0 +1,701 @@
+{% extends "layout.html" %}
+
+{% block title %}Caso {{ case.case_number }} - ClasifiCode{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <!-- Header del caso -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 class="h3 mb-0">Caso {{ case.case_number }}</h1>
+                    <p class="text-muted mb-0">{{ case.title }}</p>
+                </div>
+                <div class="btn-group" role="group">
+                    <a href="{{ url_for('edit_case', case_id=case.id) }}" class="btn btn-outline-primary">
+                        <i class="fas fa-edit"></i> Editar
+                    </a>
+                    <button type="button" class="btn btn-outline-success" onclick="runClassification()">
+                        <i class="fas fa-magic"></i> Clasificar
+                    </button>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-secondary dropdown-toggle" 
+                                data-bs-toggle="dropdown">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#" onclick="exportCase()">
+                                <i class="fas fa-download"></i> Exportar
+                            </a></li>
+                            <li><a class="dropdown-item" href="#" onclick="printCase()">
+                                <i class="fas fa-print"></i> Imprimir
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="deleteCase()">
+                                <i class="fas fa-trash"></i> Eliminar
+                            </a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <!-- Información principal -->
+                <div class="col-lg-8">
+                    <!-- Estado y progreso -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <div class="row align-items-center">
+                                <div class="col-md-6">
+                                    <h6 class="mb-2">Estado del Caso</h6>
+                                    {% set status_colors = {
+                                        'DRAFT': 'secondary',
+                                        'PENDING': 'warning',
+                                        'IN_REVIEW': 'info',
+                                        'APPROVED': 'success',
+                                        'REJECTED': 'danger',
+                                        'CLOSED': 'dark'
+                                    } %}
+                                    <span class="badge bg-{{ status_colors.get(case.status, 'secondary') }} fs-6">
+                                        {{ case.status.replace('_', ' ').title() }}
+                                    </span>
+                                </div>
+                                <div class="col-md-6">
+                                    <h6 class="mb-2">Prioridad</h6>
+                                    {% set priority_colors = {
+                                        'LOW': 'success',
+                                        'MEDIUM': 'warning',
+                                        'HIGH': 'danger',
+                                        'URGENT': 'danger'
+                                    } %}
+                                    <span class="badge bg-{{ priority_colors.get(case.priority, 'secondary') }}">
+                                        {{ case.priority.title() }}
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            {% if case.final_hs_code %}
+                            <div class="mt-3 p-3 bg-success bg-opacity-10 rounded">
+                                <h6 class="text-success mb-2">
+                                    <i class="fas fa-check-circle"></i> Clasificación Final
+                                </h6>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong>Código HS:</strong> {{ case.final_hs_code }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Confianza:</strong> {{ case.confidence_score }}%
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Información del producto -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-box"></i> Información del Producto
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p><strong>Nombre:</strong> {{ case.product_name }}</p>
+                                    {% if case.brand %}
+                                    <p><strong>Marca:</strong> {{ case.brand }}</p>
+                                    {% endif %}
+                                    {% if case.model %}
+                                    <p><strong>Modelo:</strong> {{ case.model }}</p>
+                                    {% endif %}
+                                </div>
+                                <div class="col-md-6">
+                                    {% if case.origin_country %}
+                                    <p><strong>País de Origen:</strong> {{ case.origin_country }}</p>
+                                    {% endif %}
+                                    {% if case.destination_country %}
+                                    <p><strong>País de Destino:</strong> {{ case.destination_country }}</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <strong>Descripción:</strong>
+                                <p class="mt-2">{{ case.product_description }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Candidatos de clasificación -->
+                    {% if case.candidates %}
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-list"></i> Candidatos de Clasificación
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Posición</th>
+                                            <th>Código HS</th>
+                                            <th>Descripción</th>
+                                            <th>Confianza</th>
+                                            <th>Método</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for candidate in case.candidates %}
+                                        <tr {% if candidate.id == case.final_candidate_id %}class="table-success"{% endif %}>
+                                            <td>{{ candidate.ranking_position }}</td>
+                                            <td><strong>{{ candidate.hs_code }}</strong></td>
+                                            <td>{{ candidate.description }}</td>
+                                            <td>
+                                                <div class="progress" style="height: 20px;">
+                                                    <div class="progress-bar" style="width: {{ candidate.confidence_score }}%">
+                                                        {{ candidate.confidence_score }}%
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="badge bg-info">{{ candidate.classification_method }}</span>
+                                            </td>
+                                            <td>
+                                                {% if case.status in ['DRAFT', 'PENDING'] %}
+                                                <button type="button" class="btn btn-sm btn-primary" 
+                                                        onclick="selectCandidate({{ candidate.id }})">
+                                                    Seleccionar
+                                                </button>
+                                                {% endif %}
+                                                <button type="button" class="btn btn-sm btn-outline-info" 
+                                                        onclick="viewCandidateDetails({{ candidate.id }})">
+                                                    <i class="fas fa-eye"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Historial de cambios -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-history"></i> Historial de Cambios
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="timeline">
+                                {% for log in case.audit_logs %}
+                                <div class="timeline-item">
+                                    <div class="timeline-marker"></div>
+                                    <div class="timeline-content">
+                                        <h6 class="mb-1">{{ log.action }}</h6>
+                                        <p class="text-muted mb-1">{{ log.details }}</p>
+                                        <small class="text-muted">
+                                            {{ log.created_at.strftime('%d/%m/%Y %H:%M') }} - 
+                                            {{ log.user.full_name if log.user else 'Sistema' }}
+                                        </small>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel lateral -->
+                <div class="col-lg-4">
+                    <!-- Información del caso -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-info-circle"></i> Información del Caso
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Creado:</strong> {{ case.created_at.strftime('%d/%m/%Y %H:%M') }}</p>
+                            <p><strong>Actualizado:</strong> {{ case.updated_at.strftime('%d/%m/%Y %H:%M') }}</p>
+                            <p><strong>Creado por:</strong> {{ case.created_by.full_name }}</p>
+                            {% if case.assigned_to %}
+                            <p><strong>Asignado a:</strong> {{ case.assigned_to.full_name }}</p>
+                            {% endif %}
+                            {% if case.description %}
+                            <p><strong>Descripción:</strong> {{ case.description }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Validaciones -->
+                    {% if case.validations %}
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-check-double"></i> Validaciones
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% for validation in case.validations %}
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <strong>{{ validation.validation_type }}</strong>
+                                        <p class="mb-1">{{ validation.message }}</p>
+                                    </div>
+                                    <span class="badge bg-{{ 'success' if validation.status == 'PASSED' else 'danger' }}">
+                                        {{ validation.status }}
+                                    </span>
+                                </div>
+                                {% if validation.details %}
+                                <small class="text-muted">{{ validation.details }}</small>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Acciones rápidas -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-bolt"></i> Acciones Rápidas
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="d-grid gap-2">
+                                {% if case.status == 'DRAFT' %}
+                                <button type="button" class="btn btn-success" onclick="submitCase()">
+                                    <i class="fas fa-paper-plane"></i> Enviar para Revisión
+                                </button>
+                                {% endif %}
+                                
+                                {% if case.status == 'PENDING' %}
+                                <button type="button" class="btn btn-info" onclick="startReview()">
+                                    <i class="fas fa-search"></i> Iniciar Revisión
+                                </button>
+                                {% endif %}
+                                
+                                {% if case.status == 'IN_REVIEW' %}
+                                <button type="button" class="btn btn-success" onclick="approveCase()">
+                                    <i class="fas fa-check"></i> Aprobar
+                                </button>
+                                <button type="button" class="btn btn-danger" onclick="rejectCase()">
+                                    <i class="fas fa-times"></i> Rechazar
+                                </button>
+                                {% endif %}
+                                
+                                <button type="button" class="btn btn-outline-primary" onclick="duplicateCase()">
+                                    <i class="fas fa-copy"></i> Duplicar Caso
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Estadísticas -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="fas fa-chart-bar"></i> Estadísticas
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row text-center">
+                                <div class="col-6">
+                                    <div class="number text-primary">{{ case.candidates|length if case.candidates else 0 }}</div>
+                                    <div class="label">Candidatos</div>
+                                </div>
+                                <div class="col-6">
+                                    <div class="number text-success">{{ case.validations|length if case.validations else 0 }}</div>
+                                    <div class="label">Validaciones</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de detalles del candidato -->
+<div class="modal fade" id="candidateModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detalles del Candidato</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="candidateModalBody">
+                <!-- Contenido dinámico -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" id="selectCandidateBtn">Seleccionar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de confirmación -->
+<div class="modal fade" id="confirmModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar acción</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="confirmAction">Confirmar</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+<style>
+.timeline {
+    position: relative;
+    padding-left: 30px;
+}
+
+.timeline-item {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+.timeline-marker {
+    position: absolute;
+    left: -35px;
+    top: 5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    border: 2px solid white;
+    box-shadow: 0 0 0 2px var(--primary-color);
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -29px;
+    top: 17px;
+    width: 2px;
+    height: calc(100% + 10px);
+    background-color: #e9ecef;
+}
+
+.timeline-item:last-child::before {
+    display: none;
+}
+
+.number {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.label {
+    font-size: 0.875rem;
+    color: var(--secondary-color);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let selectedCandidateId = null;
+
+function runClassification() {
+    const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    document.getElementById('confirmMessage').textContent = '¿Ejecutar clasificación automática para este caso?';
+    document.getElementById('confirmAction').onclick = () => {
+        fetch(`/api/cases/{{ case.id }}/classify`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert('Error en la clasificación: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error en la clasificación');
+        });
+        modal.hide();
+    };
+    modal.show();
+}
+
+function selectCandidate(candidateId) {
+    selectedCandidateId = candidateId;
+    const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    document.getElementById('confirmMessage').textContent = '¿Seleccionar este candidato como clasificación final?';
+    document.getElementById('confirmAction').onclick = () => {
+        fetch(`/api/cases/{{ case.id }}/select-candidate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ candidate_id: candidateId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert('Error al seleccionar candidato: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al seleccionar candidato');
+        });
+        modal.hide();
+    };
+    modal.show();
+}
+
+function viewCandidateDetails(candidateId) {
+    fetch(`/api/candidates/${candidateId}`)
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('candidateModalBody').innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <p><strong>Código HS:</strong> ${data.hs_code}</p>
+                        <p><strong>Confianza:</strong> ${data.confidence_score}%</p>
+                        <p><strong>Método:</strong> ${data.classification_method}</p>
+                        <p><strong>Posición:</strong> ${data.ranking_position}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>Regla aplicada:</strong> ${data.rule_applied || 'N/A'}</p>
+                        <p><strong>Similitud semántica:</strong> ${data.semantic_similarity || 'N/A'}</p>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <strong>Descripción:</strong>
+                    <p>${data.description}</p>
+                </div>
+                ${data.reasoning ? `
+                <div class="mt-3">
+                    <strong>Razonamiento:</strong>
+                    <p>${data.reasoning}</p>
+                </div>
+                ` : ''}
+                ${data.evidence ? `
+                <div class="mt-3">
+                    <strong>Evidencia:</strong>
+                    <p>${data.evidence}</p>
+                </div>
+                ` : ''}
+            `;
+            
+            document.getElementById('selectCandidateBtn').onclick = () => {
+                selectCandidate(candidateId);
+                bootstrap.Modal.getInstance(document.getElementById('candidateModal')).hide();
+            };
+            
+            const modal = new bootstrap.Modal(document.getElementById('candidateModal'));
+            modal.show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al cargar detalles del candidato');
+        });
+}
+
+function submitCase() {
+    const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    document.getElementById('confirmMessage').textContent = '¿Enviar este caso para revisión?';
+    document.getElementById('confirmAction').onclick = () => {
+        fetch(`/api/cases/{{ case.id }}/submit`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert('Error al enviar caso: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al enviar caso');
+        });
+        modal.hide();
+    };
+    modal.show();
+}
+
+function startReview() {
+    const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    document.getElementById('confirmMessage').textContent = '¿Iniciar revisión de este caso?';
+    document.getElementById('confirmAction').onclick = () => {
+        fetch(`/api/cases/{{ case.id }}/start-review`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert('Error al iniciar revisión: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al iniciar revisión');
+        });
+        modal.hide();
+    };
+    modal.show();
+}
+
+function approveCase() {
+    const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    document.getElementById('confirmMessage').textContent = '¿Aprobar este caso?';
+    document.getElementById('confirmAction').onclick = () => {
+        fetch(`/api/cases/{{ case.id }}/approve`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert('Error al aprobar caso: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al aprobar caso');
+        });
+        modal.hide();
+    };
+    modal.show();
+}
+
+function rejectCase() {
+    const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    document.getElementById('confirmMessage').textContent = '¿Rechazar este caso?';
+    document.getElementById('confirmAction').onclick = () => {
+        fetch(`/api/cases/{{ case.id }}/reject`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.reload();
+            } else {
+                alert('Error al rechazar caso: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al rechazar caso');
+        });
+        modal.hide();
+    };
+    modal.show();
+}
+
+function duplicateCase() {
+    const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    document.getElementById('confirmMessage').textContent = '¿Duplicar este caso?';
+    document.getElementById('confirmAction').onclick = () => {
+        fetch(`/api/cases/{{ case.id }}/duplicate`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = `/cases/${data.case_id}`;
+            } else {
+                alert('Error al duplicar caso: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al duplicar caso');
+        });
+        modal.hide();
+    };
+    modal.show();
+}
+
+function deleteCase() {
+    const modal = new bootstrap.Modal(document.getElementById('confirmModal'));
+    document.getElementById('confirmMessage').textContent = '¿Eliminar este caso? Esta acción no se puede deshacer.';
+    document.getElementById('confirmAction').className = 'btn btn-danger';
+    document.getElementById('confirmAction').textContent = 'Eliminar';
+    document.getElementById('confirmAction').onclick = () => {
+        fetch(`/api/cases/{{ case.id }}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = '/cases';
+            } else {
+                alert('Error al eliminar caso: ' + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al eliminar caso');
+        });
+        modal.hide();
+    };
+    modal.show();
+}
+
+function exportCase() {
+    window.location.href = `/api/cases/{{ case.id }}/export`;
+}
+
+function printCase() {
+    window.print();
+}
+</script>
+{% endblock %}

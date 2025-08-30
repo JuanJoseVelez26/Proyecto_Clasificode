@@ -1,0 +1,88 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    container_name: clasificode_postgres
+    environment:
+      POSTGRES_DB: clasificode_db
+      POSTGRES_USER: clasificode_user
+      POSTGRES_PASSWORD: clasificode_pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - clasificode_network
+
+  # Redis for caching
+  redis:
+    image: redis:7-alpine
+    container_name: clasificode_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - clasificode_network
+
+  # Backend API
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: clasificode_backend
+    environment:
+      - DATABASE_URL=postgresql://clasificode_user:clasificode_pass@postgres:5432/clasificode_db
+      - REDIS_URL=redis://redis:6379/0
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./Backend:/app
+      - ./logs:/app/logs
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - clasificode_network
+    command: python main.py
+
+  # Frontend
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: clasificode_frontend
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./Frontend:/app
+    depends_on:
+      - backend
+    networks:
+      - clasificode_network
+    command: python app.py
+
+  # pgAdmin (optional, for database management)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: clasificode_pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@clasificode.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    networks:
+      - clasificode_network
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  clasificode_network:
+    driver: bridge

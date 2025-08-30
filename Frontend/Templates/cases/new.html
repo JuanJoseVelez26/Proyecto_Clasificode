@@ -1,0 +1,440 @@
+{% extends "layout.html" %}
+
+{% block title %}Nuevo Caso - ClasifiCode{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0">Nuevo Caso de Clasificación</h1>
+                <a href="{{ url_for('cases_list') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-arrow-left"></i> Volver a Casos
+                </a>
+            </div>
+
+            <form method="POST" data-form-type="case" data-auto-save="true" data-form-id="new-case">
+                <div class="row">
+                    <!-- Información del producto -->
+                    <div class="col-lg-8">
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-box"></i> Información del Producto
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="product_name" class="form-label">
+                                            Nombre del Producto <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" class="form-control" id="product_name" name="product_name" 
+                                               required maxlength="200" placeholder="Ej: Laptop Dell Inspiron 15">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="brand" class="form-label">Marca</label>
+                                        <input type="text" class="form-control" id="brand" name="brand" 
+                                               maxlength="100" placeholder="Ej: Dell, Samsung, Apple">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="model" class="form-label">Modelo</label>
+                                        <input type="text" class="form-control" id="model" name="model" 
+                                               maxlength="100" placeholder="Ej: Inspiron 15 3000">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="origin_country" class="form-label">País de Origen</label>
+                                        <select class="form-select" id="origin_country" name="origin_country">
+                                            <option value="">Seleccionar país</option>
+                                            <option value="US">Estados Unidos</option>
+                                            <option value="CN">China</option>
+                                            <option value="DE">Alemania</option>
+                                            <option value="JP">Japón</option>
+                                            <option value="KR">Corea del Sur</option>
+                                            <option value="MX">México</option>
+                                            <option value="BR">Brasil</option>
+                                            <option value="AR">Argentina</option>
+                                            <option value="CO">Colombia</option>
+                                            <option value="PE">Perú</option>
+                                            <option value="CL">Chile</option>
+                                            <option value="EC">Ecuador</option>
+                                            <option value="VE">Venezuela</option>
+                                            <option value="BO">Bolivia</option>
+                                            <option value="PY">Paraguay</option>
+                                            <option value="UY">Uruguay</option>
+                                            <option value="GY">Guyana</option>
+                                            <option value="SR">Surinam</option>
+                                            <option value="GF">Guayana Francesa</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="product_description" class="form-label">
+                                            Descripción Detallada <span class="text-danger">*</span>
+                                        </label>
+                                        <textarea class="form-control" id="product_description" name="product_description" 
+                                                  rows="4" required maxlength="1000" 
+                                                  placeholder="Describe detalladamente el producto, sus características, materiales, uso, etc."></textarea>
+                                        <div class="form-text">
+                                            Cuanto más detallada sea la descripción, mejor será la clasificación.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Información del caso -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-file-alt"></i> Información del Caso
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="title" class="form-label">
+                                            Título del Caso <span class="text-danger">*</span>
+                                        </label>
+                                        <input type="text" class="form-control" id="title" name="title" 
+                                               required maxlength="200" placeholder="Ej: Clasificación de laptop para importación">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="priority" class="form-label">Prioridad</label>
+                                        <select class="form-select" id="priority" name="priority">
+                                            <option value="LOW">Baja</option>
+                                            <option value="MEDIUM" selected>Media</option>
+                                            <option value="HIGH">Alta</option>
+                                            <option value="URGENT">Urgente</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="destination_country" class="form-label">País de Destino</label>
+                                        <select class="form-select" id="destination_country" name="destination_country">
+                                            <option value="">Seleccionar país</option>
+                                            <option value="CO" selected>Colombia</option>
+                                            <option value="US">Estados Unidos</option>
+                                            <option value="CN">China</option>
+                                            <option value="DE">Alemania</option>
+                                            <option value="JP">Japón</option>
+                                            <option value="KR">Corea del Sur</option>
+                                            <option value="MX">México</option>
+                                            <option value="BR">Brasil</option>
+                                            <option value="AR">Argentina</option>
+                                            <option value="PE">Perú</option>
+                                            <option value="CL">Chile</option>
+                                            <option value="EC">Ecuador</option>
+                                            <option value="VE">Venezuela</option>
+                                            <option value="BO">Bolivia</option>
+                                            <option value="PY">Paraguay</option>
+                                            <option value="UY">Uruguay</option>
+                                            <option value="GY">Guyana</option>
+                                            <option value="SR">Surinam</option>
+                                            <option value="GF">Guayana Francesa</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="assigned_to" class="form-label">Asignar a</label>
+                                        <select class="form-select" id="assigned_to" name="assigned_to">
+                                            <option value="">Sin asignar</option>
+                                            {% for user in users %}
+                                            {% if user.role in ['ANALYST', 'ADMIN'] %}
+                                            <option value="{{ user.id }}">{{ user.full_name }} ({{ user.role.title() }})</option>
+                                            {% endif %}
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="col-12">
+                                        <label for="description" class="form-label">Descripción del Caso</label>
+                                        <textarea class="form-control" id="description" name="description" 
+                                                  rows="3" maxlength="500" 
+                                                  placeholder="Información adicional sobre el caso, contexto, requisitos especiales, etc."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Clasificación preliminar -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-search"></i> Clasificación Preliminar (Opcional)
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label for="proposed_hs_code" class="form-label">Código HS Propuesto</label>
+                                        <input type="text" class="form-control" id="proposed_hs_code" name="proposed_hs_code" 
+                                               maxlength="12" placeholder="Ej: 8471.30.00.00"
+                                               pattern="[0-9]{4}\.[0-9]{2}\.[0-9]{2}\.[0-9]{2}">
+                                        <div class="form-text">
+                                            Formato: XXXX.XX.XX.XX (opcional)
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="confidence_score" class="form-label">Nivel de Confianza</label>
+                                        <select class="form-select" id="confidence_score" name="confidence_score">
+                                            <option value="">Sin clasificar</option>
+                                            <option value="25">25% - Baja confianza</option>
+                                            <option value="50">50% - Confianza media</option>
+                                            <option value="75">75% - Alta confianza</option>
+                                            <option value="90">90% - Muy alta confianza</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Panel lateral -->
+                    <div class="col-lg-4">
+                        <!-- Acciones -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-cogs"></i> Acciones
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="d-grid gap-2">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-save"></i> Guardar Caso
+                                    </button>
+                                    <button type="button" class="btn btn-success" onclick="saveAndClassify()">
+                                        <i class="fas fa-magic"></i> Guardar y Clasificar
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" onclick="saveAsDraft()">
+                                        <i class="fas fa-edit"></i> Guardar como Borrador
+                                    </button>
+                                    <a href="{{ url_for('cases_list') }}" class="btn btn-outline-danger">
+                                        <i class="fas fa-times"></i> Cancelar
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Ayuda -->
+                        <div class="card mb-4">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-question-circle"></i> Ayuda
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="accordion" id="helpAccordion">
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button collapsed" type="button" 
+                                                    data-bs-toggle="collapse" data-bs-target="#help1">
+                                                ¿Cómo describir el producto?
+                                            </button>
+                                        </h2>
+                                        <div id="help1" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                                            <div class="accordion-body">
+                                                <ul class="mb-0">
+                                                    <li>Materiales principales</li>
+                                                    <li>Función o uso específico</li>
+                                                    <li>Características técnicas</li>
+                                                    <li>Dimensiones y peso</li>
+                                                    <li>Partes o componentes</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button collapsed" type="button" 
+                                                    data-bs-toggle="collapse" data-bs-target="#help2">
+                                                Formato del código HS
+                                            </button>
+                                        </h2>
+                                        <div id="help2" class="accordion-collapse collapse" data-bs-parent="#helpAccordion">
+                                            <div class="accordion-body">
+                                                <p class="mb-2">El código HS tiene 12 dígitos:</p>
+                                                <ul class="mb-0">
+                                                    <li>Capítulo: XX</li>
+                                                    <li>Partida: XX.XX</li>
+                                                    <li>Subpartida: XX.XX.XX</li>
+                                                    <li>Subpartida nacional: XX.XX.XX.XX</li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Validación en tiempo real -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h5 class="mb-0">
+                                    <i class="fas fa-check-circle"></i> Validación
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div id="validation-status">
+                                    <div class="text-muted">
+                                        <i class="fas fa-info-circle"></i> Completa los campos requeridos
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de clasificación automática -->
+<div class="modal fade" id="classificationModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Clasificación Automática</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div id="classification-progress" class="text-center">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Clasificando...</span>
+                    </div>
+                    <p class="mt-3">Analizando el producto...</p>
+                </div>
+                <div id="classification-results" style="display: none;">
+                    <!-- Los resultados se cargarán aquí -->
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                <button type="button" class="btn btn-primary" id="apply-classification">Aplicar Clasificación</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Validación en tiempo real
+function validateForm() {
+    const requiredFields = ['product_name', 'product_description', 'title'];
+    let isValid = true;
+    let missingFields = [];
+
+    requiredFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (!field.value.trim()) {
+            isValid = false;
+            missingFields.push(fieldId);
+        }
+    });
+
+    const validationStatus = document.getElementById('validation-status');
+    if (isValid) {
+        validationStatus.innerHTML = `
+            <div class="text-success">
+                <i class="fas fa-check-circle"></i> Formulario válido
+            </div>
+        `;
+    } else {
+        validationStatus.innerHTML = `
+            <div class="text-danger">
+                <i class="fas fa-exclamation-triangle"></i> Campos requeridos faltantes
+            </div>
+        `;
+    }
+
+    return isValid;
+}
+
+// Event listeners para validación
+document.addEventListener('DOMContentLoaded', function() {
+    const requiredFields = ['product_name', 'product_description', 'title'];
+    requiredFields.forEach(fieldId => {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('input', validateForm);
+            field.addEventListener('blur', validateForm);
+        }
+    });
+
+    // Validación inicial
+    validateForm();
+});
+
+// Guardar y clasificar
+function saveAndClassify() {
+    if (!validateForm()) {
+        alert('Por favor completa todos los campos requeridos');
+        return;
+    }
+
+    const modal = new bootstrap.Modal(document.getElementById('classificationModal'));
+    modal.show();
+
+    // Simular clasificación automática
+    setTimeout(() => {
+        document.getElementById('classification-progress').style.display = 'none';
+        document.getElementById('classification-results').style.display = 'block';
+        
+        // Aquí se cargarían los resultados reales de la API
+        document.getElementById('classification-results').innerHTML = `
+            <h6>Resultados de la clasificación:</h6>
+            <div class="alert alert-info">
+                <strong>Código HS sugerido:</strong> 8471.30.00.00<br>
+                <strong>Descripción:</strong> Laptops y computadoras portátiles<br>
+                <strong>Confianza:</strong> 85%
+            </div>
+        `;
+    }, 2000);
+}
+
+// Guardar como borrador
+function saveAsDraft() {
+    const form = document.querySelector('form');
+    const draftInput = document.createElement('input');
+    draftInput.type = 'hidden';
+    draftInput.name = 'save_as_draft';
+    draftInput.value = 'true';
+    form.appendChild(draftInput);
+    
+    form.submit();
+}
+
+// Aplicar clasificación automática
+document.getElementById('apply-classification')?.addEventListener('click', function() {
+    // Aquí se aplicarían los resultados de la clasificación automática
+    document.getElementById('proposed_hs_code').value = '8471.30.00.00';
+    document.getElementById('confidence_score').value = '85';
+    
+    const modal = bootstrap.Modal.getInstance(document.getElementById('classificationModal'));
+    modal.hide();
+    
+    // Mostrar notificación
+    if (window.clasifiCodeApp) {
+        window.clasifiCodeApp.showNotification('Clasificación aplicada correctamente', 'success');
+    }
+});
+
+// Auto-guardado
+let autoSaveTimeout;
+function setupAutoSave() {
+    const form = document.querySelector('form');
+    const inputs = form.querySelectorAll('input, textarea, select');
+    
+    inputs.forEach(input => {
+        input.addEventListener('change', () => {
+            clearTimeout(autoSaveTimeout);
+            autoSaveTimeout = setTimeout(() => {
+                // Aquí se implementaría el auto-guardado
+                console.log('Auto-guardando...');
+            }, 2000);
+        });
+    });
+}
+
+// Inicializar auto-guardado
+document.addEventListener('DOMContentLoaded', setupAutoSave);
+</script>
+{% endblock %}

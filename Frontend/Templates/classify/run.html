@@ -1,0 +1,209 @@
+{% extends "layout.html" %}
+
+{% block title %}Clasificar Producto - ClasifiCode{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8">
+        <div class="card shadow">
+            <div class="card-header bg-primary text-white">
+                <h4 class="mb-0">
+                    <i class="bi bi-search"></i> Clasificar Producto
+                </h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="product_name" class="form-label">Nombre del Producto *</label>
+                            <input type="text" class="form-control" id="product_name" name="product_name" 
+                                   placeholder="Ej: Laptop Dell Inspiron" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="brand" class="form-label">Marca</label>
+                            <input type="text" class="form-control" id="brand" name="brand" 
+                                   placeholder="Ej: Dell, Apple, Samsung">
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="model" class="form-label">Modelo</label>
+                            <input type="text" class="form-control" id="model" name="model" 
+                                   placeholder="Ej: Inspiron 15, iPhone 14">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="origin_country" class="form-label">País de Origen</label>
+                            <input type="text" class="form-control" id="origin_country" name="origin_country" 
+                                   placeholder="Ej: China, Estados Unidos">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="destination_country" class="form-label">País de Destino</label>
+                        <input type="text" class="form-control" id="destination_country" name="destination_country" 
+                               placeholder="Ej: Colombia, México">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="product_description" class="form-label">Descripción del Producto *</label>
+                        <textarea class="form-control" id="product_description" name="product_description" 
+                                  rows="4" placeholder="Describe detalladamente el producto, incluyendo materiales, función, características técnicas, etc." required></textarea>
+                        <div class="form-text">
+                            Cuanto más detallada sea la descripción, más precisa será la clasificación.
+                        </div>
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="bi bi-search"></i> Clasificar Producto
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4">
+        <div class="card shadow">
+            <div class="card-header bg-info text-white">
+                <h5 class="mb-0">
+                    <i class="bi bi-info-circle"></i> Consejos para una Mejor Clasificación
+                </h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle-fill text-success me-2"></i>
+                        Incluye el material principal del producto
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle-fill text-success me-2"></i>
+                        Menciona la función o uso específico
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle-fill text-success me-2"></i>
+                        Describe características técnicas importantes
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle-fill text-success me-2"></i>
+                        Incluye dimensiones si son relevantes
+                    </li>
+                    <li class="mb-2">
+                        <i class="bi bi-check-circle-fill text-success me-2"></i>
+                        Menciona si es nuevo o usado
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="card shadow mt-3">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0">
+                    <i class="bi bi-exclamation-triangle"></i> Importante
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="mb-0 small">
+                    La clasificación automática es una herramienta de ayuda. Para casos complejos o de alto valor, 
+                    recomendamos consultar con un especialista en comercio exterior.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if show_results and classification_result %}
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card shadow">
+            <div class="card-header bg-success text-white">
+                <h4 class="mb-0">
+                    <i class="bi bi-check-circle"></i> Resultados de Clasificación
+                </h4>
+            </div>
+            <div class="card-body">
+                {% set summary = classification_result.classification_summary %}
+                {% if summary.best_candidate %}
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Mejor Candidato</h5>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-title">{{ summary.best_candidate.hs_code }}</h6>
+                                <p class="card-text">{{ summary.best_candidate.description }}</p>
+                                <div class="d-flex justify-content-between">
+                                    <span class="badge bg-primary">Confianza: {{ "%.1f"|format(summary.best_candidate.confidence_score * 100) }}%</span>
+                                    <span class="badge bg-info">{{ summary.best_candidate.classification_method }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Estadísticas</h5>
+                        <ul class="list-group list-group-flush">
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Total de candidatos:</span>
+                                <span class="badge bg-secondary">{{ summary.total_candidates }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Alta confianza:</span>
+                                <span class="badge bg-success">{{ summary.confidence_distribution.high }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Media confianza:</span>
+                                <span class="badge bg-warning">{{ summary.confidence_distribution.medium }}</span>
+                            </li>
+                            <li class="list-group-item d-flex justify-content-between">
+                                <span>Baja confianza:</span>
+                                <span class="badge bg-danger">{{ summary.confidence_distribution.low }}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <h5 class="mt-4">Todos los Candidatos</h5>
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Posición</th>
+                                <th>Código HS</th>
+                                <th>Descripción</th>
+                                <th>Confianza</th>
+                                <th>Método</th>
+                                <th>Razón</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for candidate in classification_result.candidates %}
+                            <tr>
+                                <td>{{ candidate.ranking_position }}</td>
+                                <td><code>{{ candidate.hs_code }}</code></td>
+                                <td>{{ candidate.description }}</td>
+                                <td>
+                                    <div class="progress" style="height: 20px;">
+                                        <div class="progress-bar" role="progressbar" 
+                                             style="width: {{ candidate.confidence_score * 100 }}%">
+                                            {{ "%.1f"|format(candidate.confidence_score * 100) }}%
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-info">{{ candidate.classification_method }}</span>
+                                </td>
+                                <td>
+                                    <small class="text-muted">{{ candidate.reasoning[:100] }}...</small>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
